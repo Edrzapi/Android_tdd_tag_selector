@@ -1,19 +1,16 @@
 package uk.co.devfoundry.moodselector
 
-import uk.co.devfoundry.moodselector.viewmodels.MoodSelectorViewModel
-
+/**
+ * Handles batch operations on moods, delegating single‑mood
+ * selection to a uk.co.devfoundry.moodselector.TagSelector.
+ */
 class MoodAnalyticsManager(
-    private val selector: MoodSelectorViewModel
+    private val selector: TagSelector
 ) {
 
     fun processMoods(moods: List<String>): List<String> {
         if (moods.isEmpty()) return emptyList()
-
-        moods.distinct().forEach { mood ->
-            selector.selectMood(mood)
-        }
-        return selector.selectedMoods.value
+        moods.distinct().forEach { selector.selectMood(it) }
+        return selector.getSelectedMoods()
     }
 }
-
-

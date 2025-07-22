@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,10 @@ import uk.co.devfoundry.moodselector.ui.theme.Mood_Tag_SelectorTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +34,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Mood_Tag_SelectorTheme {
+                var showSelector by remember { mutableStateOf(false) }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(
                         modifier = Modifier
@@ -36,7 +43,11 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding),
                         contentAlignment = Alignment.Center
                     ) {
-                        Greeting()
+                        if (showSelector) {
+                            MoodSelectorScreen()
+                        } else {
+                            IntroScreen(onNavigate = { showSelector = true })
+                        }
                     }
                 }
             }
@@ -45,9 +56,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(modifier: Modifier = Modifier) {
+fun IntroScreen(onNavigate: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier,
+        modifier = modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -65,14 +76,24 @@ fun Greeting(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Get started →",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.secondary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .clickable(onClick = onNavigate)
+                .padding(8.dp)
+        )
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun IntroScreenPreview() {
     Mood_Tag_SelectorTheme {
-        Greeting()
+        IntroScreen(onNavigate = { })
     }
 }

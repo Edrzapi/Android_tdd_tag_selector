@@ -48,11 +48,18 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
+    // Unit Testing (JVM tests)
+    testImplementation("org.mockito:mockito-core:4.11.0")
+    testImplementation("junit:junit:4.12")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+
+    // Instrumented Android UI Testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Debugging Tools
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }

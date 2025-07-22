@@ -10,31 +10,30 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.unit.dp
+import uk.co.devfoundry.moodselector.viewmodels.MoodSelectorViewModel
 
 @Composable
-fun MoodSelectorScreen() {
-
-    val moods = listOf("Happy", "Tired", "Motivated")
-    val selectedMoods = remember { mutableStateListOf<String>() }
+fun MoodSelectorScreen(
+    viewModel: MoodSelectorViewModel = viewModel())
+{
+    val selectedMoods by viewModel.selectedMoods.collectAsState()
+    val moods = viewModel.moods
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        //Mood buttons
+        // Mood buttons
         moods.forEach { mood ->
             Button(
-                onClick = {
-                    if (!selectedMoods.contains(mood)) {
-                        selectedMoods.add(mood)
-                    }
-                },
-                enabled = !selectedMoods.contains(mood),
+                onClick = { viewModel.selectMood(mood) },
+                enabled = mood !in selectedMoods,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
@@ -45,16 +44,14 @@ fun MoodSelectorScreen() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // selected moods
+        // Selected moods
         Text(
             text = "Selected Moods:",
             style = MaterialTheme.typography.titleMedium
         )
+        // Display each selected mood
         selectedMoods.forEach { mood ->
             Text(text = "$mood (Selected)")
         }
     }
 }
-
-
-

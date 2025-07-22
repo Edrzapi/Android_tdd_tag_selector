@@ -1,0 +1,59 @@
+# IntelliJ IDEA / Android Studio
+*.iml
+.gradle/
+local.properties
+.idea/
+.idea/*
+
+# Ignore specific IntelliJ files that are user or machine specific
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build directories
+/build/
+/app/build/
+/captures/
+
+# External native build folders
+.externalNativeBuild/
+.cxx/
+
+# Gradle files cache (do not ignore wrapper files!)
+.gradle/
+
+# Log files
+*.log
+
+# Android generated files
+*.apk
+*.ap_
+*.dex
+*.class
+*.jar
+
+# Keystore files (you probably want to keep these private)
+*.keystore
+*.jks
+
+# Ignore Android Studio specific folders
+.idea/gradle.xml
+.idea/gradleTasks.xml
+.idea/misc.xml
+.idea/runConfigurations/
+
+# Ignore generated JSON or other caches
+*.hprof
+
+# Kotlin module files
+*.kotlin_module
+
+# Avoid committing local IDE or system specific files
+*.iml

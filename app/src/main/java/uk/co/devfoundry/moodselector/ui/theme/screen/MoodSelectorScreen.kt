@@ -1,11 +1,6 @@
 package uk.co.devfoundry.moodselector.ui.theme.screen
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,14 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.testTag        // <- add this import
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import uk.co.devfoundry.moodselector.viewmodels.MoodSelectorViewModel
 
 @Composable
 fun MoodSelectorScreen(
-    viewModel: MoodSelectorViewModel = viewModel())
-{
+    viewModel: MoodSelectorViewModel = viewModel()
+) {
     val selectedMoods by viewModel.selectedMoods.collectAsState()
     val moods = viewModel.moods
 
@@ -36,6 +32,7 @@ fun MoodSelectorScreen(
                 enabled = mood !in selectedMoods,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .testTag("button-$mood")          // ← tag each button
                     .padding(vertical = 4.dp)
             ) {
                 Text(text = mood)
@@ -44,14 +41,19 @@ fun MoodSelectorScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Selected moods
+        // Selected moods header
         Text(
             text = "Selected Moods:",
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.testTag("selected-moods-label")  // ← tag the label
         )
+
         // Display each selected mood
         selectedMoods.forEach { mood ->
-            Text(text = "$mood (Selected)")
+            Text(
+                text = "$mood (Selected)",
+                modifier = Modifier.testTag("selected-$mood")      // optional, only if you want to tag each entry
+            )
         }
     }
 }

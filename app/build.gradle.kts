@@ -48,7 +48,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
     // Unit Testing (JVM tests)
+    testImplementation (libs.kotlinx.coroutines.test)
     testImplementation("org.mockito:mockito-core:4.11.0")
     testImplementation("junit:junit:4.12")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")

@@ -1,36 +1,46 @@
 package uk.co.devfoundry.moodselector.viewmodels
 
-import uk.co.devfoundry.moodselector.domain.TagSelector
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import uk.co.devfoundry.moodselector.domain.MoodDataSource
+import uk.co.devfoundry.moodselector.domain.TagSelector
 
+sealed class UiState {
+    object Loading : UiState()
+    data class Success(val moods: List<String>) : UiState()
+}
 
-class MoodSelectorViewModel : ViewModel(), TagSelector {
+class MoodSelectorViewModel(
+    private val dataSource: MoodDataSource,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Main
+) : ViewModel(), TagSelector {
 
-    // Backing StateFlow to represent the current selection of moods in a reactive way.
+    private val _state = MutableStateFlow<UiState>(UiState.Loading)
+    val state: StateFlow<UiState> = _state.asStateFlow()
+
     private val _selectedMoods = MutableStateFlow<List<String>>(emptyList())
     val selectedMoods: StateFlow<List<String>> = _selectedMoods
 
-    // Predefined list of all moods
     val moods = listOf("Happy", "Sad", "Tired", "Motivated")
 
-    /**
-     * Selects a mood if it’s not already in the list.
-     * - We check `isNotBlank()` to avoid empty or whitespace-only entries.
-     * - We use `_selectedMoods.value + mood` to produce a new list,
-     *   preserving immutability for StateFlow updates.
-     */
+    fun loadMoods() {
+        _state.value = UiState.Loading
+        viewModelScope.launch(dispatcher) {
+            val moods = dataSource.getMoods()
+            _state.value = UiState.Success(moods)
+        }
+    }
+
     override fun selectMood(mood: String) {
         if (mood.isNotBlank() && !_selectedMoods.value.contains(mood)) {
             _selectedMoods.value += mood
         }
     }
-
-    /**
-     * Returns the current list of selected moods.
-     * Exposed by the uk.co.devfoundry.moodselector.domain.TagSelector interface for use in batch analytics.
-     */
-    override fun getSelectedMoods(): List<String> =
-        _selectedMoods.value
+    override fun getSelectedMoods(): List<String> = _selectedMoods.value
 }

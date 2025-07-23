@@ -1,4 +1,4 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.domain
 
 
 interface TagSelector {

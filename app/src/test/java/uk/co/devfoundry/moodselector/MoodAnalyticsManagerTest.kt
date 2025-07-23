@@ -10,6 +10,9 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.co.devfoundry.moodselector.analytics.MoodAnalyticsManager
+import uk.co.devfoundry.moodselector.domain.MoodLogger
+import uk.co.devfoundry.moodselector.domain.TagSelector
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset

@@ -1,4 +1,4 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.ui.theme.screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

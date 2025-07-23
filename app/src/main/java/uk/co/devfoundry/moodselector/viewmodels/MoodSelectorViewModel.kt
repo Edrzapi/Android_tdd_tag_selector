@@ -1,6 +1,6 @@
 package uk.co.devfoundry.moodselector.viewmodels
 
-import uk.co.devfoundry.moodselector.TagSelector
+import uk.co.devfoundry.moodselector.domain.TagSelector
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +29,7 @@ class MoodSelectorViewModel : ViewModel(), TagSelector {
 
     /**
      * Returns the current list of selected moods.
-     * Exposed by the uk.co.devfoundry.moodselector.TagSelector interface for use in batch analytics.
+     * Exposed by the uk.co.devfoundry.moodselector.domain.TagSelector interface for use in batch analytics.
      */
     override fun getSelectedMoods(): List<String> =
         _selectedMoods.value

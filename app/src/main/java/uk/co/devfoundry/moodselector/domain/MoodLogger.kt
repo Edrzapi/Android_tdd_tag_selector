@@ -1,4 +1,4 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.domain
 
 import java.time.Instant
 /** Records a single mood selection along with a timestamp. */

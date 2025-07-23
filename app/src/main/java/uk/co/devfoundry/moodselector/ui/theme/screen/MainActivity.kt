@@ -1,4 +1,4 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.ui.theme.screen
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

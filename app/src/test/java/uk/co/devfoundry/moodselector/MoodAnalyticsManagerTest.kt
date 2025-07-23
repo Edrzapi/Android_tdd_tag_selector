@@ -1,81 +1,77 @@
 package uk.co.devfoundry.moodselector
 
+import uk.co.devfoundry.moodselector.TagSelector
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.whenever
 
 @RunWith(MockitoJUnitRunner::class)
 class MoodAnalyticsManagerTest {
 
-    @Mock
-    lateinit var selector: TagSelector
+    @Mock private lateinit var selector: TagSelector
+    @Mock private lateinit var logger: MoodLogger
 
     private lateinit var manager: MoodAnalyticsManager
 
     @Before
     fun setUp() {
-        manager = MoodAnalyticsManager(selector)
+        manager = MoodAnalyticsManager(selector, logger)
     }
 
     @Test
-    fun emptyInputReturnsEmptyList() {
-        // Given no moods
+    fun shouldReturnEmptyListWhenInputIsEmpty() {
         val result = manager.processMoods(emptyList())
-
-        // Then result is empty
         assertEquals(emptyList<String>(), result)
     }
 
     @Test
-    fun nonEmptyInputReturnsSelectorResult() {
-        // Given selector will return exactly this list after selection
+    fun shouldReturnSelectorResultForNonEmptyInput() {
         whenever(selector.getSelectedMoods()).thenReturn(listOf("Happy", "Sad"))
 
-        // When processing a non‑empty list
         val result = manager.processMoods(listOf("Happy", "Sad"))
 
-        // Then we get back whatever the selector holds
         assertEquals(listOf("Happy", "Sad"), result)
     }
 
     @Test
-    fun filtersInvalidMoodsCorrectly() {
-        // Simulate selecting moods but only "Happy" ends up in state
+    fun shouldFilterInvalidMoodsCorrectly() {
         whenever(selector.getSelectedMoods()).thenReturn(listOf("Happy"))
 
-        // When processing mixed list
         val result = manager.processMoods(listOf("Happy", "Invalid"))
 
-        // Only "Happy" survives
         assertEquals(listOf("Happy"), result)
     }
 
     @Test
-    fun processMoodsDelegatesToSelectMoodForEachUniqueMood() {
-        // Given a list with duplicates
+    fun shouldDelegateToSelectMoodAndLogEachUniqueMood() {
         val input = listOf("Happy", "Sad", "Happy", "Tired")
+        whenever(selector.getSelectedMoods()).thenReturn(listOf("Happy", "Sad", "Tired"))
 
-        // When
         manager.processMoods(input)
 
-        // Then selectMood is called once per unique mood
-        verify(selector).selectMood("Happy")
-        verify(selector).selectMood("Sad")
-        verify(selector).selectMood("Tired")
+        // verify the exact interleaving of calls in order
+        val order = inOrder(selector, logger)
+        order.verify(selector).selectMood("Happy")
+        order.verify(logger).logMood("Happy")
+
+        order.verify(selector).selectMood("Sad")
+        order.verify(logger).logMood("Sad")
+
+        order.verify(selector).selectMood("Tired")
+        order.verify(logger).logMood("Tired")
     }
 
     @Test
-    fun processMoodsReturnsEmptyWhenSelectorRemainsEmpty() {
-        // Even if we pass values, if selector.getSelectedMoods() is empty,
-        // result should be empty
+    fun shouldReturnEmptyWhenSelectorRemainsEmpty() {
         whenever(selector.getSelectedMoods()).thenReturn(emptyList())
 
         val result = manager.processMoods(listOf("A", "B", "C"))
+
         assertEquals(emptyList<String>(), result)
     }
 }

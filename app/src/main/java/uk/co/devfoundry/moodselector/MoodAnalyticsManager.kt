@@ -5,12 +5,19 @@ package uk.co.devfoundry.moodselector
  * selection to a uk.co.devfoundry.moodselector.TagSelector.
  */
 class MoodAnalyticsManager(
-    private val selector: TagSelector
-) {
-
+    private val selector: TagSelector,
+    private val logger: MoodLogger) {
     fun processMoods(moods: List<String>): List<String> {
         if (moods.isEmpty()) return emptyList()
-        moods.distinct().forEach { selector.selectMood(it) }
+
+        moods
+            .filterNot(String::isBlank)     // drop blank entries
+            .distinct()                      // prevent dupe
+            .forEach { mood ->
+                selector.selectMood(mood)
+                logger.logMood(mood)
+            }
+
         return selector.getSelectedMoods()
     }
 }

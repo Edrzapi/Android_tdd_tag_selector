@@ -12,6 +12,7 @@ import org.junit.Test
 import uk.co.devfoundry.moodselector.domain.MoodDataSource
 import uk.co.devfoundry.moodselector.viewmodels.MoodSelectorViewModel
 import uk.co.devfoundry.moodselector.viewmodels.UiState
+import java.io.IOException
 
 class MoodSelectorViewModelTest {
 
@@ -44,4 +45,25 @@ class MoodSelectorViewModelTest {
         assertTrue(state is UiState.Success)
         assertEquals(listOf("Happy", "Sad", "Tired", "Motivated"), (state as UiState.Success).moods)
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun loadMoods_emitsErrorOnException() = runTest {
+        val fakeErrorSource = object : MoodDataSource {
+            override suspend fun getMoods(): List<String> =
+                throw IOException("data load failed")
+        }
+        val vm = MoodSelectorViewModel(
+            dataSource = fakeErrorSource,
+            dispatcher = testDispatcher
+        )
+
+        vm.loadMoods()
+        advanceUntilIdle()
+
+        val state = vm.state.value
+        assertTrue(state is UiState.Error)
+        assertEquals("data load failed", (state as UiState.Error).message)
+    }
+
 }

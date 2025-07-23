@@ -14,7 +14,9 @@ import uk.co.devfoundry.moodselector.domain.TagSelector
 sealed class UiState {
     object Loading : UiState()
     data class Success(val moods: List<String>) : UiState()
+    data class Error(val message: String) : UiState()
 }
+
 
 class MoodSelectorViewModel(
     private val dataSource: MoodDataSource,
@@ -29,11 +31,16 @@ class MoodSelectorViewModel(
 
     val moods = listOf("Happy", "Sad", "Tired", "Motivated")
 
+    // Updated for Error
     fun loadMoods() {
         _state.value = UiState.Loading
         viewModelScope.launch(dispatcher) {
-            val moods = dataSource.getMoods()
-            _state.value = UiState.Success(moods)
+            try {
+                val moods = dataSource.getMoods()
+                _state.value = UiState.Success(moods)
+            } catch (e: Throwable) {
+                _state.value = UiState.Error(e.message ?: "Unknown error")
+            }
         }
     }
 

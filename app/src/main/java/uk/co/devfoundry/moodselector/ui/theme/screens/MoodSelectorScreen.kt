@@ -1,4 +1,4 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.ui.theme.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +22,7 @@ fun MoodSelectorScreen(
     viewModel: MoodSelectorViewModel = viewModel())
 {
     val selectedMoods by viewModel.selectedMoods.collectAsState()
-    val moods = viewModel.moods
+    val moods = viewModel.selectedMoods
 
     Column(
         modifier = Modifier
@@ -30,15 +30,15 @@ fun MoodSelectorScreen(
             .padding(16.dp)
     ) {
         // Mood buttons
-        moods.forEach { mood ->
+        selectedMoods.forEach { selectedMoods ->
             Button(
-                onClick = { viewModel.selectMood(mood) },
-                enabled = mood !in selectedMoods,
+                onClick = { viewModel.selectMood(selectedMoods) },
+                enabled = selectedMoods !in selectedMoods,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
             ) {
-                Text(text = mood)
+                Text(text = selectedMoods)
             }
         }
 

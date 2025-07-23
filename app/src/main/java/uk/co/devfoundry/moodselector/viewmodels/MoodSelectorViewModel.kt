@@ -1,36 +1,46 @@
 package uk.co.devfoundry.moodselector.viewmodels
 
-import uk.co.devfoundry.moodselector.TagSelector
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import uk.co.devfoundry.moodselector.analytics.MoodAnalyticsManager
+import uk.co.devfoundry.moodselector.domain.TagSelector
 
+class MoodSelectorViewModel(
+    private val analytics: MoodAnalyticsManager
+) : ViewModel(), TagSelector {
 
-class MoodSelectorViewModel : ViewModel(), TagSelector {
-
-    // Backing StateFlow to represent the current selection of moods in a reactive way.
+    // Backing flow of the current selection
     private val _selectedMoods = MutableStateFlow<List<String>>(emptyList())
-    val selectedMoods: StateFlow<List<String>> = _selectedMoods
+    val selectedMoods: StateFlow<List<String>> = _selectedMoods.asStateFlow()
 
-    // Predefined list of all moods
-    val moods = listOf("Happy", "Sad", "Tired", "Motivated")
+    // UI-friendly list of all possible moods
+    val availableMoods = listOf("Happy", "Sad", "Tired", "Motivated")
 
-    /**
-     * Selects a mood if it’s not already in the list.
-     * - We check `isNotBlank()` to avoid empty or whitespace-only entries.
-     * - We use `_selectedMoods.value + mood` to produce a new list,
-     *   preserving immutability for StateFlow updates.
-     */
+    /** Called by the UI when the user taps a mood button */
+    fun onMoodSelected(mood: String) {
+        selectMood(mood)
+    }
+
+    /** TagSelector contract: add a mood to the list if it’s valid and new */
     override fun selectMood(mood: String) {
-        if (mood.isNotBlank() && !_selectedMoods.value.contains(mood)) {
-            _selectedMoods.value += mood
+        if (mood.isBlank()) return
+
+        _selectedMoods.update { current ->
+            (current + mood).distinct()
         }
     }
 
-    /**
-     * Returns the current list of selected moods.
-     * Exposed by the uk.co.devfoundry.moodselector.TagSelector interface for use in batch analytics.
-     */
+    /** TagSelector contract: read the current list */
     override fun getSelectedMoods(): List<String> =
-        _selectedMoods.value
+        selectedMoods.value
+
+    /**
+     * Flush the current selections into analytics.
+     * Returns whatever the analytics layer outputs (e.g. final stored list).
+     */
+    fun recordSelections(): List<String> =
+        analytics.processMoods(getSelectedMoods())
 }

@@ -1,5 +1,7 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.analytics
 
+import uk.co.devfoundry.moodselector.domain.TagSelector
+import uk.co.devfoundry.moodselector.domain.MoodLogger
 import java.time.Clock
 
 /**

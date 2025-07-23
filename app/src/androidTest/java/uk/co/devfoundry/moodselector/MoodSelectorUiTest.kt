@@ -4,6 +4,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.*
 import org.junit.Rule
 import org.junit.Test
+import uk.co.devfoundry.moodselector.ui.theme.screens.MoodSelectorScreen
 
 class MoodSelectorUiTest {
 

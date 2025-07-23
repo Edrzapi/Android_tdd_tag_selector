@@ -1,21 +1,26 @@
 package uk.co.devfoundry.moodselector
 
+import java.time.Clock
+
 /**
  * Handles batch operations on moods, delegating single‑mood
- * selection to a uk.co.devfoundry.moodselector.TagSelector.
  */
+
 class MoodAnalyticsManager(
     private val selector: TagSelector,
-    private val logger: MoodLogger) {
+    private val logger: MoodLogger,
+    private val clock: Clock = Clock.systemUTC()
+) {
     fun processMoods(moods: List<String>): List<String> {
         if (moods.isEmpty()) return emptyList()
 
+        val now = clock.instant()
         moods
-            .filterNot(String::isBlank)     // drop blank entries
-            .distinct()                      // prevent dupe
+            .filterNot(String::isBlank)
+            .distinct()
             .forEach { mood ->
                 selector.selectMood(mood)
-                logger.logMood(mood)
+                logger.logMood(mood, now)
             }
 
         return selector.getSelectedMoods()

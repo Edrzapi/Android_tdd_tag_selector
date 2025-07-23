@@ -1,3 +1,4 @@
+// src/main/kotlin/uk/co/devfoundry/moodselector/analytics/MoodAnalyticsManager.kt
 package uk.co.devfoundry.moodselector.analytics
 
 import uk.co.devfoundry.moodselector.domain.TagSelector
@@ -5,19 +6,20 @@ import uk.co.devfoundry.moodselector.domain.MoodLogger
 import java.time.Clock
 
 /**
- * Handles batch operations on moods, delegating single‑mood
+ * Takes raw selections, filters & de-dupes them,
+ * delegates selectMood() + logs each with timestamp,
+ * then returns the selector’s final state.
  */
-
 class MoodAnalyticsManager(
     private val selector: TagSelector,
     private val logger: MoodLogger,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    fun processMoods(moods: List<String>): List<String> {
-        if (moods.isEmpty()) return emptyList()
+    fun recordSelections(raw: List<String>): List<String> {
+        if (raw.isEmpty()) return emptyList()
 
         val now = clock.instant()
-        moods
+        raw
             .filterNot(String::isBlank)
             .distinct()
             .forEach { mood ->

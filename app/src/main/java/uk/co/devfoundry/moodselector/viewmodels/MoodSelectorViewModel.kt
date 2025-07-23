@@ -9,25 +9,22 @@ import uk.co.devfoundry.moodselector.analytics.MoodAnalyticsManager
 import uk.co.devfoundry.moodselector.domain.TagSelector
 
 class MoodSelectorViewModel(
-    private val analytics: MoodAnalyticsManager
+    private val analyticsManager: MoodAnalyticsManager
 ) : ViewModel(), TagSelector {
 
     // Backing flow of the current selection
     private val _selectedMoods = MutableStateFlow<List<String>>(emptyList())
     val selectedMoods: StateFlow<List<String>> = _selectedMoods.asStateFlow()
 
-    // UI-friendly list of all possible moods
+    // UI‑friendly list of all possible moods
     val availableMoods = listOf("Happy", "Sad", "Tired", "Motivated")
 
     /** Called by the UI when the user taps a mood button */
-    fun onMoodSelected(mood: String) {
-        selectMood(mood)
-    }
+    fun onMoodSelected(mood: String) = selectMood(mood)
 
-    /** TagSelector contract: add a mood to the list if it’s valid and new */
+    /** TagSelector contract: add a mood if it’s not blank and not already present */
     override fun selectMood(mood: String) {
         if (mood.isBlank()) return
-
         _selectedMoods.update { current ->
             (current + mood).distinct()
         }
@@ -38,9 +35,9 @@ class MoodSelectorViewModel(
         selectedMoods.value
 
     /**
-     * Flush the current selections into analytics.
-     * Returns whatever the analytics layer outputs (e.g. final stored list).
+     * Flushes current selections into analytics and returns
+     * whatever the analytics manager returns (e.g. final stored list).
      */
     fun recordSelections(): List<String> =
-        analytics.processMoods(getSelectedMoods())
+        analyticsManager.recordSelections(getSelectedMoods())
 }

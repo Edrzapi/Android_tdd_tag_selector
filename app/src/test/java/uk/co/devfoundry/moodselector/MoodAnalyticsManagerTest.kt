@@ -1,4 +1,5 @@
-package uk.co.devfoundry.moodselector
+package uk.co.devfoundry.moodselector.analytics
+
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -10,7 +11,6 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.co.devfoundry.moodselector.analytics.MoodAnalyticsManager
 import uk.co.devfoundry.moodselector.domain.MoodLogger
 import uk.co.devfoundry.moodselector.domain.TagSelector
 import java.time.Clock
@@ -20,77 +20,80 @@ import java.time.ZoneOffset
 @RunWith(MockitoJUnitRunner::class)
 class MoodAnalyticsManagerTest {
 
-    @Mock private lateinit var selector: TagSelector
-    @Mock private lateinit var logger: MoodLogger
+    @Mock private lateinit var tagSelector: TagSelector
+    @Mock private lateinit var moodLogger: MoodLogger
 
-    private val fixedInstant = Instant.parse("2025-07-23T12:00:00Z")
-    private val clock = Clock.fixed(fixedInstant, ZoneOffset.UTC)
+    private val expectedTimestamp: Instant =
+        Instant.parse("2025-07-23T12:00:00Z")
+    private val fixedClock: Clock =
+        Clock.fixed(expectedTimestamp, ZoneOffset.UTC)
 
-    private lateinit var manager: MoodAnalyticsManager
+    private lateinit var subject: MoodAnalyticsManager
 
     @Before
     fun setUp() {
-        // now pass the clock as well
-        manager = MoodAnalyticsManager(selector, logger, clock)
+        subject = MoodAnalyticsManager(tagSelector, moodLogger, fixedClock)
     }
 
     @Test
     fun shouldReturnEmptyListWhenInputIsEmpty() {
-        val result = manager.processMoods(emptyList())
+        val result = subject.recordSelections(emptyList())
         assertEquals(emptyList<String>(), result)
-        // also ensure no logging happened
-        verify(logger, org.mockito.kotlin.never()).logMood(any(), any())
+
+        // no logging for empty input
+        verify(moodLogger, never()).logMood(any(), any())
     }
 
     @Test
-    fun shouldReturnSelectorResultForNonEmptyInput() {
-        whenever(selector.getSelectedMoods()).thenReturn(listOf("Happy", "Sad"))
+    fun shouldReturnSelectorStateForValidInput() {
+        whenever(tagSelector.getSelectedMoods())
+            .thenReturn(listOf("Happy", "Sad"))
 
-        val result = manager.processMoods(listOf("Happy", "Sad"))
-
+        val result = subject.recordSelections(listOf("Happy", "Sad"))
         assertEquals(listOf("Happy", "Sad"), result)
     }
 
     @Test
-    fun shouldFilterInvalidMoodsCorrectly() {
-        whenever(selector.getSelectedMoods()).thenReturn(listOf("Happy"))
+    fun shouldFilterOutBlankAndDuplicateMoods() {
+        whenever(tagSelector.getSelectedMoods())
+            .thenReturn(listOf("Happy"))
 
-        val result = manager.processMoods(listOf("Happy", "Invalid"))
-
+        val result = subject.recordSelections(listOf("Happy", "", "Happy"))
         assertEquals(listOf("Happy"), result)
     }
 
     @Test
     fun shouldLogEachDistinctMoodWithTimestampInOrder() {
         val input = listOf("Happy", "Sad", "Happy", "Tired")
-        whenever(selector.getSelectedMoods()).thenReturn(listOf("Happy", "Sad", "Tired"))
+        whenever(tagSelector.getSelectedMoods())
+            .thenReturn(listOf("Happy", "Sad", "Tired"))
 
-        manager.processMoods(input)
+        subject.recordSelections(input)
 
-        val order = inOrder(selector, logger)
-        order.verify(selector).selectMood("Happy")
-        order.verify(logger).logMood("Happy", fixedInstant)
+        val order = inOrder(tagSelector, moodLogger)
+        order.verify(tagSelector).selectMood("Happy")
+        order.verify(moodLogger).logMood("Happy", expectedTimestamp)
 
-        order.verify(selector).selectMood("Sad")
-        order.verify(logger).logMood("Sad", fixedInstant)
+        order.verify(tagSelector).selectMood("Sad")
+        order.verify(moodLogger).logMood("Sad", expectedTimestamp)
 
-        order.verify(selector).selectMood("Tired")
-        order.verify(logger).logMood("Tired", fixedInstant)
-    }
-
-    @Test
-    fun shouldReturnEmptyWhenSelectorRemainsEmpty() {
-        whenever(selector.getSelectedMoods()).thenReturn(emptyList())
-
-        val result = manager.processMoods(listOf("A", "B", "C"))
-        assertEquals(emptyList<String>(), result)
+        order.verify(tagSelector).selectMood("Tired")
+        order.verify(moodLogger).logMood("Tired", expectedTimestamp)
     }
 
     @Test
     fun shouldSkipBlankMoodsAndNotLogThem() {
-        manager.processMoods(listOf("", "Happy"))
-        verify(logger).logMood("Happy", fixedInstant)
-        verify(logger, never()).logMood("", fixedInstant)
+        subject.recordSelections(listOf("", "Happy"))
+
+        verify(moodLogger).logMood("Happy", expectedTimestamp)
+        verify(moodLogger, never()).logMood("", expectedTimestamp)
     }
 
+    @Test
+    fun shouldReturnEmptyWhenSelectorRemainsEmpty() {
+        whenever(tagSelector.getSelectedMoods()).thenReturn(emptyList())
+
+        val result = subject.recordSelections(listOf("A", "B", "C"))
+        assertEquals(emptyList<String>(), result)
+    }
 }

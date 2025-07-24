@@ -1,10 +1,12 @@
 package uk.co.devfoundry.moodselector
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -16,16 +18,24 @@ import java.io.IOException
 
 class MoodSelectorViewModelTest {
 
-    private lateinit var testDispatcher: StandardTestDispatcher
+    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
-        testDispatcher = StandardTestDispatcher()
+        // You might want to set this dispatcher as the main dispatcher for tests
+        Dispatchers.setMain(testDispatcher)
     }
+
+    @After
+    fun tearDown() {
+        // Reset main dispatcher after tests
+        Dispatchers.resetMain()
+    }
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun loadMoods_emitsSuccessAfterDataFetched() = runTest {
+    fun loadMoodsEmitsSuccessAfterDataFetched(): Unit = runTest {
         // Given: a fake data source with delay (simulate async)
         val fakeDataSource = object : MoodDataSource {
             override suspend fun getMoods(): List<String> {
@@ -39,7 +49,7 @@ class MoodSelectorViewModelTest {
         )
 
         vm.loadMoods()
-        advanceUntilIdle() // fast-forward the coroutine until all tasks are done
+        testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.state.value
         assertTrue(state is UiState.Success)
@@ -48,7 +58,7 @@ class MoodSelectorViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun loadMoods_emitsErrorOnException() = runTest {
+    fun loadMoodsEmitsErrorOnException(): Unit = runTest {
         val fakeErrorSource = object : MoodDataSource {
             override suspend fun getMoods(): List<String> =
                 throw IOException("data load failed")
@@ -59,7 +69,7 @@ class MoodSelectorViewModelTest {
         )
 
         vm.loadMoods()
-        advanceUntilIdle()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.state.value
         assertTrue(state is UiState.Error)

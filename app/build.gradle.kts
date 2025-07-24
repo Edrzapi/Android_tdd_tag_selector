@@ -2,19 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("jacoco")
-}
-
-jacoco {
-    toolVersion = "0.8.7"
+    id("pl.droidsonroids.pitest") version "0.2.19"
+    jacoco
 }
 
 android {
-    namespace = "uk.co.devfoundry.moodselector"
+    namespace = "uk.co.devfoundry.moodseletor"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "uk.co.devfoundry.moodselector"
+        applicationId = "uk.co.devfoundry.moodseletor"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -37,40 +34,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
     kotlinOptions {
         jvmTarget = "11"
     }
-
     buildFeatures {
         compose = true
     }
 }
-
-tasks.register<JacocoReport>("jacocoTestReport") {
-    dependsOn("testDebugUnitTest")
-
-    reports {
-        html.required.set(true)
-        xml.required.set(false)
-    }
-
-    classDirectories.setFrom(
-        fileTree("${buildDir}/intermediates/classes/debug") {
-            exclude(
-                "**/R.class",              // Android's generated resources class
-                "**/R$*.class",            // Inner resource classes (e.g. R$drawable)
-                "**/BuildConfig.*",        // Generated build config
-                "**/Manifest*.*",          // Manifest stubs
-                "**/*Test*.*"              // Your test classes
-            )
-        }
-    )
-
-    sourceDirectories.setFrom(files("src/main/java"))
-    executionData.setFrom(files("${buildDir}/jacoco/testDebugUnitTest.exec"))
-}
-
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -95,7 +65,51 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    // Debugging Tools
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+// PIT testing configuration
+configure<pl.droidsonroids.gradle.pitest.PitestPluginExtension> {
+    targetClasses.set(listOf("uk.co.devfoundry.moodseletor.*"))
+    targetTests.set(listOf("uk.co.devfoundry.moodseletor.*"))
+    excludedClasses.set(listOf("**/BuildConfig.*", "**/R.class", "**/R\$*.class"))
+}
+
+// JaCoCo configuration
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest") // Run unit tests first
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R\$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*"
+    )
+
+    val debugTree = fileTree("${buildDir}/intermediates/javac/debug/classes") {
+        exclude(fileFilter)
+    }
+
+    val kotlinDebugTree = fileTree("${buildDir}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    classDirectories.setFrom(files(debugTree, kotlinDebugTree))
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    executionData.setFrom(fileTree(buildDir) {
+        include(
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code_coverage/debugAndroidTest/connected/*coverage.ec"
+        )
+    })
 }

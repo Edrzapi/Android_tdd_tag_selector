@@ -47,14 +47,15 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
     // Unit Testing (JVM tests)
-    testImplementation (libs.kotlinx.coroutines.test)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("org.mockito:mockito-core:4.11.0")
     testImplementation("junit:junit:4.12")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")

@@ -2,7 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("jacoco")
 }
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
 android {
     namespace = "uk.co.devfoundry.moodselector"
     compileSdk = 35
@@ -26,17 +32,45 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
 }
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        html.required.set(true)
+        xml.required.set(false)
+    }
+
+    classDirectories.setFrom(
+        fileTree("${buildDir}/intermediates/classes/debug") {
+            exclude(
+                "**/R.class",              // Android's generated resources class
+                "**/R$*.class",            // Inner resource classes (e.g. R$drawable)
+                "**/BuildConfig.*",        // Generated build config
+                "**/Manifest*.*",          // Manifest stubs
+                "**/*Test*.*"              // Your test classes
+            )
+        }
+    )
+
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(files("${buildDir}/jacoco/testDebugUnitTest.exec"))
+}
+
 
 dependencies {
     implementation(libs.androidx.core.ktx)
